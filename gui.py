@@ -29,11 +29,12 @@ class DownloaderApp(ctk.CTk):
         Tema.guncelle_fontlar()
 
         self.configure(fg_color=Tema.BG)
-        self.geometry("920x720")
-        self.title(f"İndio · v{self._surum()}")
+        self.geometry("920x860")
+        self.title(f"Indio · v{self._surum()}")
         self.resizable(False, False)
 
         self.arayuz_tasarla()
+        self._cikti_bolumunu_gizle()
         self._kayitli_ayarlari_yukle()
         self.gecmis_listesini_yenile()
         self.kuyruk_listesini_yenile()
@@ -45,6 +46,12 @@ class DownloaderApp(ctk.CTk):
 
     def _ui(self, fn):
         self.after(0, fn)
+
+    def _cikti_bolumunu_gizle(self):
+        self.cikti_bolum_label.pack_forget()
+        self.select_frame.pack_forget()
+        self.klasor_satir.pack_forget()
+        self.indir_btn_frame.pack_forget()
 
     @staticmethod
     def _url_gecerli_mi(url: str) -> bool:
@@ -170,16 +177,12 @@ class DownloaderApp(ctk.CTk):
 
     def arayuz_tasarla(self):
         # —— Sol: indirme akışı ——
-        self.sol_frame = ctk.CTkScrollableFrame(
-            self,
-            fg_color="transparent",
-            scrollbar_button_color=Tema.BTN_SECONDARY,
-        )
+        self.sol_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.sol_frame.pack(side="left", fill="both", expand=True, padx=(28, 12), pady=24)
 
         ctk.CTkLabel(
             self.sol_frame,
-            text="İndirici",
+            text="Indio",
             font=Tema.FONT_TITLE,
             text_color=Tema.TEXT,
             anchor="w",
@@ -191,7 +194,7 @@ class DownloaderApp(ctk.CTk):
             font=Tema.FONT_SM,
             text_color=Tema.TEXT_DIM,
             anchor="w",
-        ).pack(fill="x", pady=(2, 20))
+        ).pack(fill="x", pady=(2, 10))
 
         bolum_etiketi(self.sol_frame, "Bağlantı").pack(fill="x", pady=(0, 6))
 
@@ -206,7 +209,7 @@ class DownloaderApp(ctk.CTk):
             placeholder_text_color=Tema.TEXT_DIM,
             corner_radius=Tema.RADIUS_SM,
         )
-        self.url_entry.pack(fill="x", pady=(0, 16))
+        self.url_entry.pack(fill="x", pady=(0, 8))
 
         bolum_etiketi(self.sol_frame, "Toplu ekleme").pack(fill="x", pady=(0, 6))
 
@@ -225,7 +228,7 @@ class DownloaderApp(ctk.CTk):
         self._kuyruk_placeholder_goster()
 
         kuyruk_satir = ctk.CTkFrame(self.sol_frame, fg_color="transparent")
-        kuyruk_satir.pack(fill="x", pady=(0, 20))
+        kuyruk_satir.pack(fill="x", pady=(0, 10))
         self._btn_ghost(kuyruk_satir, "Ekle", self.kuyruga_ekle, 72).pack(side="left", padx=(0, 6))
         self._btn_ghost(kuyruk_satir, "Metinden al", self.metinden_kuyruga_ekle, 100).pack(
             side="left", padx=(0, 6)
@@ -255,10 +258,10 @@ class DownloaderApp(ctk.CTk):
         self.bilgi_label.pack(padx=16, pady=14, anchor="w")
         self.info_frame.pack(fill="x", pady=(0, 4))
 
-        bolum_etiketi(self.sol_frame, "Çıktı").pack(fill="x", pady=(16, 8))
+        # Çıktı bölümü — başta gizli
+        self.cikti_bolum_label = bolum_etiketi(self.sol_frame, "Çıktı")
 
         self.select_frame = ctk.CTkFrame(self.sol_frame, fg_color="transparent")
-        self.select_frame.pack(fill="x", pady=(0, 12))
 
         self.format_menu = ctk.CTkOptionMenu(
             self.select_frame,
@@ -289,11 +292,10 @@ class DownloaderApp(ctk.CTk):
         )
         self.kalite_menu.pack(side="left")
 
-        klasor_satir = ctk.CTkFrame(self.sol_frame, fg_color="transparent")
-        klasor_satir.pack(fill="x", pady=(0, 4))
-        self._btn_ghost(klasor_satir, "Klasör", self.klasor_sec, 80).pack(side="left")
+        self.klasor_satir = ctk.CTkFrame(self.sol_frame, fg_color="transparent")
+        self._btn_ghost(self.klasor_satir, "Klasör", self.klasor_sec, 80).pack(side="left")
         self.klasor_label = ctk.CTkLabel(
-            klasor_satir,
+            self.klasor_satir,
             text="Varsayılan konum",
             font=Tema.FONT_XS,
             text_color=Tema.TEXT_DIM,
@@ -302,7 +304,7 @@ class DownloaderApp(ctk.CTk):
         self.klasor_label.pack(side="left", padx=(10, 0))
 
         self.indir_btn_frame = ctk.CTkFrame(self.sol_frame, fg_color="transparent")
-        self.indir_btn_frame.pack(fill="x", pady=(20, 0))
+        self.indir_btn_frame.pack(fill="x", pady=(12, 0))
 
         self.button = self._btn_primary(
             self.indir_btn_frame,
@@ -639,6 +641,9 @@ class DownloaderApp(ctk.CTk):
                     text_color=Tema.ERR,
                 )
                 self.indir_btn_frame.pack_forget()
+                self.cikti_bolum_label.pack_forget()
+                self.select_frame.pack_forget()
+                self.klasor_satir.pack_forget()
             else:
                 self.son_cekilen_baslik = sonuc["baslik"]
                 max_k = sonuc["kaliteler"][0] if sonuc["kaliteler"] else "—"
@@ -651,6 +656,7 @@ class DownloaderApp(ctk.CTk):
                     text=f"{kisa}\nEn yüksek: {max_k}",
                     text_color=Tema.TEXT,
                 )
+
                 if sonuc["kaliteler"]:
                     self.kalite_menu.configure(values=sonuc["kaliteler"])
                     self.kalite_menu.set(sonuc["kaliteler"][0])
@@ -658,8 +664,13 @@ class DownloaderApp(ctk.CTk):
                     self.kalite_menu.configure(values=["En iyi"])
                     self.kalite_menu.set("En iyi")
 
+                # Gizli bölümleri göster
+                self.cikti_bolum_label.pack(fill="x", pady=(8, 6))
+                self.select_frame.pack(fill="x", pady=(0, 8))
+                self.klasor_satir.pack(fill="x", pady=(0, 4))
+
                 if not self.indir_btn_frame.winfo_ismapped():
-                    self.indir_btn_frame.pack(fill="x", pady=(20, 0))
+                    self.indir_btn_frame.pack(fill="x", pady=(12, 0))
 
                 self._durum_guncelle("Hazır — indirebilirsin.", Tema.OK)
 
