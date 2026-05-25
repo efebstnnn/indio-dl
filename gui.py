@@ -1,20 +1,21 @@
 import os
 import threading
-
 import customtkinter as ctk
 from tkinter import filedialog
+from urllib.parse import urlparse
 
 import config
+import fonts
 from downloader import DownloadCancelledError, DownloadError, VideoDownloader
 from theme import Tema, bolum_etiketi
 
 
 class DownloaderApp(ctk.CTk):
+
     KUYRUK_PLACEHOLDER = "Her satıra bir adres — toplu ekleme için"
 
     def __init__(self):
         super().__init__()
-
         self.downloader = VideoDownloader(progress_callback=self.arayuz_ilerleme_guncelle)
         self._bilgi_calisiyor = False
         self._indirme_calisiyor = False
@@ -25,11 +26,12 @@ class DownloaderApp(ctk.CTk):
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
 
+        Tema.guncelle_fontlar()
+
         self.configure(fg_color=Tema.BG)
-        self.geometry("920x640")
-        self.title(f"İndirici · v{self._surum()}")
-        self.resizable(True, True)
-        self.minsize(820, 580)
+        self.geometry("920x720")
+        self.title(f"İndio · v{self._surum()}")
+        self.resizable(False, False)
 
         self.arayuz_tasarla()
         self._kayitli_ayarlari_yukle()
@@ -39,11 +41,18 @@ class DownloaderApp(ctk.CTk):
     @staticmethod
     def _surum() -> str:
         from version import __version__
-
         return __version__
 
     def _ui(self, fn):
         self.after(0, fn)
+
+    @staticmethod
+    def _url_gecerli_mi(url: str) -> bool:
+        try:
+            sonuc = urlparse(url)
+            return sonuc.scheme in ("http", "https") and bool(sonuc.netloc)
+        except Exception:
+            return False
 
     @staticmethod
     def _format_etiketi(ham: str) -> str:
@@ -161,7 +170,11 @@ class DownloaderApp(ctk.CTk):
 
     def arayuz_tasarla(self):
         # —— Sol: indirme akışı ——
-        self.sol_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.sol_frame = ctk.CTkScrollableFrame(
+            self,
+            fg_color="transparent",
+            scrollbar_button_color=Tema.BTN_SECONDARY,
+        )
         self.sol_frame.pack(side="left", fill="both", expand=True, padx=(28, 12), pady=24)
 
         ctk.CTkLabel(
@@ -181,6 +194,7 @@ class DownloaderApp(ctk.CTk):
         ).pack(fill="x", pady=(2, 20))
 
         bolum_etiketi(self.sol_frame, "Bağlantı").pack(fill="x", pady=(0, 6))
+
         self.url_entry = ctk.CTkEntry(
             self.sol_frame,
             placeholder_text="https://…",
@@ -195,6 +209,7 @@ class DownloaderApp(ctk.CTk):
         self.url_entry.pack(fill="x", pady=(0, 16))
 
         bolum_etiketi(self.sol_frame, "Toplu ekleme").pack(fill="x", pady=(0, 6))
+
         self.kuyruk_metin = ctk.CTkTextbox(
             self.sol_frame,
             height=72,
@@ -394,15 +409,13 @@ class DownloaderApp(ctk.CTk):
         self.btn_kuyruk_indir.configure(state="normal")
         self.btn_bilgi.configure(state="normal")
 
-    def _butonlari_kilitle_uygula(self, kilitli: bool) -> None:
-        """Yalnızca ana UI thread'inden çağrılmalı."""
+    def _butonlari_kilitle(self, kilitli: bool):
         durum = "disabled" if kilitli else "normal"
-        self.button.configure(state=durum)
-        self.btn_kuyruk_indir.configure(state=durum)
-        self.btn_bilgi.configure(state=durum)
-
-    def _butonlari_kilitle(self, kilitli: bool) -> None:
-        self._ui(lambda: self._butonlari_kilitle_uygula(kilitli))
+        self._ui(lambda: (
+            self.button.configure(state=durum),
+            self.btn_kuyruk_indir.configure(state=durum),
+            self.btn_bilgi.configure(state=durum),
+        ))
 
     def indirmeyi_iptal_et(self):
         self.downloader.iptal_talep_et()
@@ -410,8 +423,13 @@ class DownloaderApp(ctk.CTk):
 
     def kuyruga_ekle(self):
         url, f_secim, k_secim = self._mevcut_indirme_ayarlari()
+
         if not url:
             self._durum_guncelle("Önce bir bağlantı girin.", Tema.ERR)
+            return
+
+        if not self._url_gecerli_mi(url):
+            self._durum_guncelle("Geçersiz bağlantı. https:// ile başlamalı.", Tema.ERR)
             return
 
         fmt = f"MP3" if f_secim == "MP3" else "MP4"
@@ -432,9 +450,10 @@ class DownloaderApp(ctk.CTk):
         _, f_secim, k_secim = self._mevcut_indirme_ayarlari()
         fmt = "MP3" if f_secim == "MP3" else "MP4"
         eklenen = 0
+
         for satir in metin.splitlines():
             url = satir.strip()
-            if url.startswith(("http://", "https://")):
+            if self._url_gecerli_mi(url):
                 self.kuyruk.append(
                     {
                         "url": url,
@@ -446,7 +465,7 @@ class DownloaderApp(ctk.CTk):
                 eklenen += 1
 
         if eklenen == 0:
-            self._durum_guncelle("Geçerli bir http adresi bulunamadı.", Tema.ERR)
+            self._durum_guncelle("Geçerli bir https:// adresi bulunamadı.", Tema.ERR)
             return
 
         self.kuyruk_listesini_yenile()
@@ -523,6 +542,7 @@ class DownloaderApp(ctk.CTk):
                 widget.destroy()
 
             gecmis_verileri = self.downloader.gecmisi_yukle()
+
             if not gecmis_verileri:
                 ctk.CTkLabel(
                     self.gecmis_scroll,
@@ -586,72 +606,67 @@ class DownloaderApp(ctk.CTk):
     def bilgi_getir_tetikle(self):
         if self._bilgi_calisiyor or self._indirme_calisiyor:
             return
-        self._ui(self._bilgi_getir_basla)
+        threading.Thread(target=self.bilgi_getir_islemi, daemon=True).start()
 
-    def _bilgi_getir_basla(self):
-        """Ana thread: URL okuma ve arayüz kilidi."""
+    def bilgi_getir_islemi(self):
         self._bilgi_calisiyor = True
-        self._butonlari_kilitle_uygula(True)
+        self._butonlari_kilitle(True)
 
         url = self.url_entry.get().strip()
+
         if not url:
-            self.durum_label.configure(
-                text="Önce bir bağlantı girin.", text_color=Tema.ERR
-            )
+            self._durum_guncelle("Önce bir bağlantı girin.", Tema.ERR)
             self._bilgi_calisiyor = False
-            self._butonlari_kilitle_uygula(False)
+            self._butonlari_kilitle(False)
             return
 
-        threading.Thread(
-            target=self._bilgi_getir_worker, args=(url,), daemon=True
-        ).start()
+        if not self._url_gecerli_mi(url):
+            self._durum_guncelle("Geçersiz bağlantı. https:// ile başlamalı.", Tema.ERR)
+            self._bilgi_calisiyor = False
+            self._butonlari_kilitle(False)
+            return
 
-    def _bilgi_getir_worker(self, url: str):
-        """Arka plan: yalnızca yt-dlp sorgusu."""
         self._durum_guncelle("Video bilgisi alınıyor…", Tema.TEXT_SECONDARY)
         sonuc = self.downloader.bilgi_ve_kalite_cek(url)
-        self._ui(lambda: self._bilgi_sonucu_uygula(sonuc))
 
-    def _bilgi_sonucu_uygula(self, sonuc: dict):
-        """Ana thread: sonuç arayüze yansıtılır."""
-        if sonuc["hata"]:
-            hata = sonuc["hata"]
-            if len(hata) > 72:
-                hata = hata[:69] + "…"
-            self.bilgi_label.configure(
-                text=f"Alınamadı: {hata}",
-                text_color=Tema.ERR,
-            )
-            self.indir_btn_frame.pack_forget()
-        else:
-            self.son_cekilen_baslik = sonuc["baslik"]
-            max_k = sonuc["kaliteler"][0] if sonuc["kaliteler"] else "—"
-            kisa = (
-                self.son_cekilen_baslik
-                if len(self.son_cekilen_baslik) < 48
-                else f"{self.son_cekilen_baslik[:45]}…"
-            )
-            self.bilgi_label.configure(
-                text=f"{kisa}\nEn yüksek: {max_k}",
-                text_color=Tema.TEXT,
-            )
-
-            if sonuc["kaliteler"]:
-                self.kalite_menu.configure(values=sonuc["kaliteler"])
-                self.kalite_menu.set(sonuc["kaliteler"][0])
+        def sonucu_uygula():
+            if sonuc["hata"]:
+                hata = sonuc["hata"]
+                if len(hata) > 72:
+                    hata = hata[:69] + "…"
+                self.bilgi_label.configure(
+                    text=f"Alınamadı: {hata}",
+                    text_color=Tema.ERR,
+                )
+                self.indir_btn_frame.pack_forget()
             else:
-                self.kalite_menu.configure(values=["En iyi"])
-                self.kalite_menu.set("En iyi")
+                self.son_cekilen_baslik = sonuc["baslik"]
+                max_k = sonuc["kaliteler"][0] if sonuc["kaliteler"] else "—"
+                kisa = (
+                    self.son_cekilen_baslik
+                    if len(self.son_cekilen_baslik) < 48
+                    else f"{self.son_cekilen_baslik[:45]}…"
+                )
+                self.bilgi_label.configure(
+                    text=f"{kisa}\nEn yüksek: {max_k}",
+                    text_color=Tema.TEXT,
+                )
+                if sonuc["kaliteler"]:
+                    self.kalite_menu.configure(values=sonuc["kaliteler"])
+                    self.kalite_menu.set(sonuc["kaliteler"][0])
+                else:
+                    self.kalite_menu.configure(values=["En iyi"])
+                    self.kalite_menu.set("En iyi")
 
-            if not self.indir_btn_frame.winfo_ismapped():
-                self.indir_btn_frame.pack(fill="x", pady=(20, 0))
+                if not self.indir_btn_frame.winfo_ismapped():
+                    self.indir_btn_frame.pack(fill="x", pady=(20, 0))
 
-            self.durum_label.configure(
-                text="Hazır — indirebilirsin.", text_color=Tema.OK
-            )
+                self._durum_guncelle("Hazır — indirebilirsin.", Tema.OK)
 
-        self._bilgi_calisiyor = False
-        self._butonlari_kilitle_uygula(False)
+            self._bilgi_calisiyor = False
+            self._butonlari_kilitle(False)
+
+        self._ui(sonucu_uygula)
 
     def arayuz_ilerleme_guncelle(self, yuzde, hiz, sure):
         def guncelle():
@@ -714,6 +729,7 @@ class DownloaderApp(ctk.CTk):
         self.downloader.iptal_sifirla()
 
         indirmeler = self._indirme_listesi_olustur(kuyruk_dahil)
+
         if not indirmeler:
             mesaj = (
                 "Kuyruk boş — önce bir şey ekle."
@@ -752,7 +768,6 @@ class DownloaderApp(ctk.CTk):
                     indirilen_baslik = self.downloader.indir(url, f_secim, k_secim)
                     if not baslik or baslik == url[:48]:
                         baslik = indirilen_baslik
-
                     self.downloader.gecmise_ekle(baslik, k_secim, gecmis_fmt, url)
                     basarili += 1
                 except DownloadCancelledError:
@@ -794,6 +809,7 @@ class DownloaderApp(ctk.CTk):
                     )
 
             self._ui(bitir)
+
         except Exception as e:
             def beklenmeyen():
                 self._indirme_arayuzunu_kapat()
@@ -803,6 +819,7 @@ class DownloaderApp(ctk.CTk):
 
             self._ui(beklenmeyen)
             print(f"Beklenmeyen hata: {e}")
+
         finally:
             self.downloader.iptal_sifirla()
             self._indirme_calisiyor = False
