@@ -5,7 +5,6 @@ import customtkinter as ctk
 from tkinter import filedialog
 
 import config
-import fonts
 from downloader import DownloadCancelledError, DownloadError, VideoDownloader
 from theme import Tema, bolum_etiketi
 
@@ -25,9 +24,6 @@ class DownloaderApp(ctk.CTk):
 
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-
-        fonts.yukle()
-        Tema.guncelle_fontlar()
 
         self.configure(fg_color=Tema.BG)
         self.geometry("920x640")
@@ -398,15 +394,15 @@ class DownloaderApp(ctk.CTk):
         self.btn_kuyruk_indir.configure(state="normal")
         self.btn_bilgi.configure(state="normal")
 
-    def _butonlari_kilitle(self, kilitli: bool):
+    def _butonlari_kilitle_uygula(self, kilitli: bool) -> None:
+        """Yalnızca ana UI thread'inden çağrılmalı."""
         durum = "disabled" if kilitli else "normal"
-        self._ui(
-            lambda: (
-                self.button.configure(state=durum),
-                self.btn_kuyruk_indir.configure(state=durum),
-                self.btn_bilgi.configure(state=durum),
-            )
-        )
+        self.button.configure(state=durum)
+        self.btn_kuyruk_indir.configure(state=durum)
+        self.btn_bilgi.configure(state=durum)
+
+    def _butonlari_kilitle(self, kilitli: bool) -> None:
+        self._ui(lambda: self._butonlari_kilitle_uygula(kilitli))
 
     def indirmeyi_iptal_et(self):
         self.downloader.iptal_talep_et()
@@ -590,61 +586,72 @@ class DownloaderApp(ctk.CTk):
     def bilgi_getir_tetikle(self):
         if self._bilgi_calisiyor or self._indirme_calisiyor:
             return
-        threading.Thread(target=self.bilgi_getir_islemi, daemon=True).start()
+        self._ui(self._bilgi_getir_basla)
 
-    def bilgi_getir_islemi(self):
+    def _bilgi_getir_basla(self):
+        """Ana thread: URL okuma ve arayüz kilidi."""
         self._bilgi_calisiyor = True
-        self._butonlari_kilitle(True)
+        self._butonlari_kilitle_uygula(True)
 
         url = self.url_entry.get().strip()
         if not url:
-            self._durum_guncelle("Önce bir bağlantı girin.", Tema.ERR)
+            self.durum_label.configure(
+                text="Önce bir bağlantı girin.", text_color=Tema.ERR
+            )
             self._bilgi_calisiyor = False
-            self._butonlari_kilitle(False)
+            self._butonlari_kilitle_uygula(False)
             return
 
+        threading.Thread(
+            target=self._bilgi_getir_worker, args=(url,), daemon=True
+        ).start()
+
+    def _bilgi_getir_worker(self, url: str):
+        """Arka plan: yalnızca yt-dlp sorgusu."""
         self._durum_guncelle("Video bilgisi alınıyor…", Tema.TEXT_SECONDARY)
         sonuc = self.downloader.bilgi_ve_kalite_cek(url)
+        self._ui(lambda: self._bilgi_sonucu_uygula(sonuc))
 
-        def sonucu_uygula():
-            if sonuc["hata"]:
-                hata = sonuc["hata"]
-                if len(hata) > 72:
-                    hata = hata[:69] + "…"
-                self.bilgi_label.configure(
-                    text=f"Alınamadı: {hata}",
-                    text_color=Tema.ERR,
-                )
-                self.indir_btn_frame.pack_forget()
+    def _bilgi_sonucu_uygula(self, sonuc: dict):
+        """Ana thread: sonuç arayüze yansıtılır."""
+        if sonuc["hata"]:
+            hata = sonuc["hata"]
+            if len(hata) > 72:
+                hata = hata[:69] + "…"
+            self.bilgi_label.configure(
+                text=f"Alınamadı: {hata}",
+                text_color=Tema.ERR,
+            )
+            self.indir_btn_frame.pack_forget()
+        else:
+            self.son_cekilen_baslik = sonuc["baslik"]
+            max_k = sonuc["kaliteler"][0] if sonuc["kaliteler"] else "—"
+            kisa = (
+                self.son_cekilen_baslik
+                if len(self.son_cekilen_baslik) < 48
+                else f"{self.son_cekilen_baslik[:45]}…"
+            )
+            self.bilgi_label.configure(
+                text=f"{kisa}\nEn yüksek: {max_k}",
+                text_color=Tema.TEXT,
+            )
+
+            if sonuc["kaliteler"]:
+                self.kalite_menu.configure(values=sonuc["kaliteler"])
+                self.kalite_menu.set(sonuc["kaliteler"][0])
             else:
-                self.son_cekilen_baslik = sonuc["baslik"]
-                max_k = sonuc["kaliteler"][0] if sonuc["kaliteler"] else "—"
-                kisa = (
-                    self.son_cekilen_baslik
-                    if len(self.son_cekilen_baslik) < 48
-                    else f"{self.son_cekilen_baslik[:45]}…"
-                )
-                self.bilgi_label.configure(
-                    text=f"{kisa}\nEn yüksek: {max_k}",
-                    text_color=Tema.TEXT,
-                )
+                self.kalite_menu.configure(values=["En iyi"])
+                self.kalite_menu.set("En iyi")
 
-                if sonuc["kaliteler"]:
-                    self.kalite_menu.configure(values=sonuc["kaliteler"])
-                    self.kalite_menu.set(sonuc["kaliteler"][0])
-                else:
-                    self.kalite_menu.configure(values=["En iyi"])
-                    self.kalite_menu.set("En iyi")
+            if not self.indir_btn_frame.winfo_ismapped():
+                self.indir_btn_frame.pack(fill="x", pady=(20, 0))
 
-                if not self.indir_btn_frame.winfo_ismapped():
-                    self.indir_btn_frame.pack(fill="x", pady=(20, 0))
+            self.durum_label.configure(
+                text="Hazır — indirebilirsin.", text_color=Tema.OK
+            )
 
-                self._durum_guncelle("Hazır — indirebilirsin.", Tema.OK)
-
-            self._bilgi_calisiyor = False
-            self._butonlari_kilitle(False)
-
-        self._ui(sonucu_uygula)
+        self._bilgi_calisiyor = False
+        self._butonlari_kilitle_uygula(False)
 
     def arayuz_ilerleme_guncelle(self, yuzde, hiz, sure):
         def guncelle():
