@@ -5,7 +5,7 @@ Teşekkürler — katkılar memnuniyetle karşılanır.
 ## Hızlı başlangıç
 
 ```bash
-git clone https://github.com/KULLANICI_ADIN/yt-dlp-gui.git
+git clone https://github.com/efebstnnn/yt-dlp-uygulama.git
 cd yt-dlp-gui
 pip install -r requirements.txt
 python main.py

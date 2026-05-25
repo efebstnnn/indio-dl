@@ -34,7 +34,7 @@ Python ile yazılmış, [yt-dlp](https://github.com/yt-dlp/yt-dlp) tabanlı masa
 ## Kurulum
 
 ```bash
-git clone https://github.com/KULLANICI_ADIN/yt-dlp-gui.git
+git clone https://github.com/efebstnnn/yt-dlp-uygulama.git
 cd yt-dlp-gui
 pip install -r requirements.txt
 ```
@@ -78,7 +78,7 @@ Yalnızca indirme hakkınız olan veya platform kurallarına uygun içerikleri i
 
 ## Katkı
 
-Hata ve öneriler için [Issue aç](https://github.com/KULLANICI_ADIN/yt-dlp-gui/issues). Yol haritası: [ROADMAP.md](ROADMAP.md).
+Hata ve öneriler için [Issue aç](https://github.com/efebstnnn/yt-dlp-uygulama/issues). Yol haritası: [ROADMAP.md](ROADMAP.md).
 
 İlk kez GitHub’da repo paylaşacaksan: **[docs/GITHUB-REHBERI.md](docs/GITHUB-REHBERI.md)** (adım adım Türkçe rehber).
 
