@@ -30,6 +30,11 @@ def yukle() -> bool:
             bulunan += 1
 
     _yuklendi = bulunan > 0
+    if not _yuklendi:
+        print(
+            "Uyarı: Inter fontları bulunamadı. "
+            "Çalıştır: python scripts/download_fonts.py"
+        )
     return _yuklendi
 
 

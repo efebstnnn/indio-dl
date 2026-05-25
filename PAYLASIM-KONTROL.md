@@ -1,36 +1,27 @@
-# Paylaşım öncesi kontrol listesi
+# Paylaşım kontrol listesi
 
-Repoyu GitHub’a atmadan önce bu listeyi işaretle.
+Repo: **https://github.com/efebstnnn/yt-dlp-uygulama**
 
-## Dosyalar
+## Tamamlanan
 
-- [x] `README.md` — kurulum ve kullanım
-- [x] `LICENSE` — MIT
-- [x] `.gitignore` — `config.json`, geçmiş, medya dosyaları
-- [x] `requirements.txt`
-- [x] `assets/fonts/` — Inter fontları
-- [x] `docs/GITHUB-REHBERI.md` — ilk repo rehberi
-- [x] `.github/workflows/ci.yml` — otomatik derleme kontrolü
+- [x] README, LICENSE (MIT), `.gitignore`, `requirements.txt`
+- [x] Inter fontları (`assets/fonts/`)
+- [x] GitHub Actions CI (`.github/workflows/ci.yml`)
+- [x] Issue şablonu, katkı rehberi
+- [x] `config.json` / geçmiş repoda yok
+- [x] İlk commit ve `git push` yapıldı
 
-## Senin yapman gerekenler
+## İsteğe bağlı (sonra)
 
-- [ ] `README.md` ve `CONTRIBUTING.md` içinde `KULLANICI_ADIN` → GitHub kullanıcı adın
-- [ ] `LICENSE` içinde isteğe bağlı: kendi adın
-- [ ] `config.json` ve `indirme_gecmisi.json` commit’e **dahil değil** (`.gitignore`)
-- [ ] İsteğe bağlı: `docs/screenshots/app.png` ekran görüntüsü
-- [ ] Git veya GitHub Desktop kurulu
-- [ ] GitHub’da repo oluşturuldu ve `git push` yapıldı
+- [ ] `docs/screenshots/app.png` ekran görüntüsü
+- [ ] GitHub About → Topics: `python`, `yt-dlp`, `gui`, `customtkinter`
+- [ ] Release `v0.1.0` etiketi
 
-## Hızlı komutlar (Git kuruluysa)
+## Güncelleme gönderme
 
 ```powershell
 cd "C:\Users\efebs\OneDrive\Masaüstü\yt-dlp-gui"
-git init
 git add .
-git commit -m "İlk sürüm: yt-dlp GUI"
-git branch -M main
-git remote add origin https://github.com/KULLANICI_ADIN/yt-dlp-gui.git
-git push -u origin main
+git commit -m "Ne değiştiyse kısa açıklama"
+git push
 ```
-
-Detaylı anlatım: [docs/GITHUB-REHBERI.md](docs/GITHUB-REHBERI.md)

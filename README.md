@@ -4,12 +4,15 @@
 
 Python ile yazılmış, [yt-dlp](https://github.com/yt-dlp/yt-dlp) tabanlı masaüstü video ve ses indirici. Windows, macOS ve Linux’ta çalışır.
 
-![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
+[![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Repo](https://img.shields.io/badge/GitHub-efebstnnn%2Fyt--dlp--uygulama-24292f?logo=github)](https://github.com/efebstnnn/yt-dlp-uygulama)
 
 ## Önizleme
 
-> İlk yayında ekran görüntüsü eklemek istersen: uygulamayı aç → `Win + Shift + S` → `docs/screenshots/` klasörüne `app.png` kaydet → bu bölümde `![Arayüz](docs/screenshots/app.png)` kullan.
+> Ekran görüntüsü: uygulamayı aç → `Win + Shift + S` → `docs/screenshots/app.png` kaydet → aşağıdaki satırın yorumunu kaldır:
+>
+> `![Arayüz](docs/screenshots/app.png)`
 
 ## Özellikler
 
@@ -35,7 +38,7 @@ Python ile yazılmış, [yt-dlp](https://github.com/yt-dlp/yt-dlp) tabanlı masa
 
 ```bash
 git clone https://github.com/efebstnnn/yt-dlp-uygulama.git
-cd yt-dlp-gui
+cd yt-dlp-uygulama
 pip install -r requirements.txt
 ```
 
@@ -61,11 +64,12 @@ python main.py
 ## Proje yapısı
 
 ```
-yt-dlp-gui/
+yt-dlp-uygulama/
 ├── main.py              # Giriş noktası
 ├── gui.py               # Arayüz
 ├── downloader.py        # yt-dlp mantığı
 ├── theme.py / fonts.py  # Görünüm
+├── version.py           # Sürüm numarası
 ├── assets/fonts/        # Inter (.ttf)
 ├── scripts/             # Yardımcı scriptler
 ├── docs/                # Dokümantasyon
@@ -80,18 +84,21 @@ Yalnızca indirme hakkınız olan veya platform kurallarına uygun içerikleri i
 
 Hata ve öneriler için [Issue aç](https://github.com/efebstnnn/yt-dlp-uygulama/issues). Yol haritası: [ROADMAP.md](ROADMAP.md).
 
-İlk kez GitHub’da repo paylaşacaksan: **[docs/GITHUB-REHBERI.md](docs/GITHUB-REHBERI.md)** (adım adım Türkçe rehber).
-
 ## Lisans
 
-[MIT](LICENSE) — Telif satırını kendi adınla güncelleyebilirsin.
+[MIT](LICENSE) — Copyright (c) 2026 [efebstnnn](https://github.com/efebstnnn)
 
 ---
 
 ## English
 
-Desktop app to download video/audio via **yt-dlp**, with a simple dark UI (CustomTkinter), download queue, cancel, and history.
+Desktop app to download video/audio via **yt-dlp**, with a dark UI (CustomTkinter), download queue, cancel, and history.
 
-**Install:** `pip install -r requirements.txt` · **Run:** `python main.py` · **FFmpeg** required for MP3.
+```bash
+git clone https://github.com/efebstnnn/yt-dlp-uygulama.git
+cd yt-dlp-uygulama
+pip install -r requirements.txt
+python main.py
+```
 
-See [docs/GITHUB-REHBERI.md](docs/GITHUB-REHBERI.md) for publishing the repo (Turkish guide).
+**FFmpeg** required for MP3. Repo: [github.com/efebstnnn/yt-dlp-uygulama](https://github.com/efebstnnn/yt-dlp-uygulama)

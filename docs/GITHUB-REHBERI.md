@@ -87,7 +87,7 @@ GitHub sana komutlar gösterir. Örnek (kullanıcı adını değiştir):
 ```powershell
 git branch -M main
 
-git remote add origin https://github.com/KULLANICI_ADIN/yt-dlp-gui.git
+git remote add origin https://github.com/efebstnnn/yt-dlp-uygulama.git
 
 git push -u origin main
 ```
@@ -103,7 +103,7 @@ git push -u origin main
 
 `README.md` içinde şunları kendi bilginle değiştir:
 
-- `KULLANICI_ADIN` → GitHub kullanıcı adın (2 yerde)
+- Repo linklerinin doğru olduğundan emin ol (`efebstnnn/yt-dlp-uygulama`)
 - İstersen `LICENSE` dosyasında `yt-dlp-gui contributors` → kendi adın
 
 Değiştirdikten sonra:
@@ -157,7 +157,7 @@ git push
 **Repo ismini değiştirdim**  
 GitHub → Settings → Repository name; yerelde:
 ```powershell
-git remote set-url origin https://github.com/KULLANICI_ADIN/YENI-ISIM.git
+git remote set-url origin https://github.com/efebstnnn/YENI-ISIM.git
 ```
 
 ---
@@ -167,7 +167,7 @@ git remote set-url origin https://github.com/KULLANICI_ADIN/YENI-ISIM.git
 - [ ] `git init` ve ilk `commit` yapıldı
 - [ ] GitHub’da boş repo oluşturuldu (README eklenmedi)
 - [ ] `git push` başarılı
-- [ ] README’deki `KULLANICI_ADIN` güncellendi
+- [x] README repo linkleri güncel
 - [ ] `config.json` / geçmiş dosyası repoda yok
 - [ ] İsteğe bağlı: ekran görüntüsü ve Topics eklendi
 

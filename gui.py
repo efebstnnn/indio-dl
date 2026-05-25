@@ -31,7 +31,7 @@ class DownloaderApp(ctk.CTk):
 
         self.configure(fg_color=Tema.BG)
         self.geometry("920x640")
-        self.title("İndirici")
+        self.title(f"İndirici · v{self._surum()}")
         self.resizable(True, True)
         self.minsize(820, 580)
 
@@ -40,8 +40,24 @@ class DownloaderApp(ctk.CTk):
         self.gecmis_listesini_yenile()
         self.kuyruk_listesini_yenile()
 
+    @staticmethod
+    def _surum() -> str:
+        from version import __version__
+
+        return __version__
+
     def _ui(self, fn):
         self.after(0, fn)
+
+    @staticmethod
+    def _format_etiketi(ham: str) -> str:
+        return (
+            ham.replace(" (Video)", "")
+            .replace(" (Ses)", "")
+            .replace("MP4 (Video)", "MP4")
+            .strip()
+            or "?"
+        )
 
     def _btn_primary(self, parent, text, command, width=140, height=40):
         return ctk.CTkButton(
@@ -542,9 +558,7 @@ class DownloaderApp(ctk.CTk):
                         ust, "Yükle", lambda u=url: self.gecmisten_kullan(u), 64, 26
                     ).pack(side="right")
 
-                fmt = item.get("format", "?").replace(" (Video)", "").replace(" (Ses)", "")
-                if "MP" not in fmt:
-                    fmt = fmt[:6]
+                fmt = self._format_etiketi(item.get("format", "?"))
                 ctk.CTkLabel(
                     kart,
                     text=f"{fmt} · {item.get('kalite', '?')} · {item.get('tarih', '')}",
@@ -661,7 +675,6 @@ class DownloaderApp(ctk.CTk):
     def _indirme_listesi_olustur(self, kuyruk_dahil: bool) -> list[dict]:
         url, f_secim, k_secim = self._mevcut_indirme_ayarlari()
         liste = []
-        fmt = "MP3" if f_secim == "MP3" else "MP4"
         fmt_indir = "MP3 (Ses)" if f_secim == "MP3" else "MP4 (Video)"
 
         if kuyruk_dahil:

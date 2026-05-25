@@ -141,6 +141,9 @@ class VideoDownloader:
             self.progress_callback(eslesme.group(1), temiz_hiz, temiz_sure)
 
     def _video_format_sec(self, kalite_secim: str) -> str:
+        if kalite_secim in ("En iyi", "Ses", ""):
+            return "bestvideo+bestaudio/best"
+
         cozunurluk = kalite_secim.replace("p", "").strip()
         if cozunurluk.isdigit():
             h = cozunurluk
