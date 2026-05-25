@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.eggs/
+dist/
+build/
+*.spec
+
+# Sanal ortam
+.venv/
+venv/
+env/
+
+# Kullanıcı verisi (repoya girmez)
+config.json
+indirme_gecmisi.json
+cookies.txt
+
+# İndirilen medya
+*.mp4
+*.mp3
+*.webm
+*.mkv
+*.m4a
+*.part
+
+# Ortam / gizli
+.env
+.env.*
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Log
+*.log

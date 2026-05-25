@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  compile:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Bağımlılıklar
+        run: pip install -r requirements.txt
+
+      - name: Sözdizimi kontrolü
+        run: |
+          python -m py_compile main.py gui.py downloader.py config.py fonts.py theme.py
+          python -c "import fonts; fonts.yukle()"
